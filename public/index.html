@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="ja" style="font-size:20px;">
+<head>
+<meta charset="utf-8">
+<!--<meta name="viewport" content="width=320, initial-scale=1, maximum-scale=1, user-scalable=no, minimal-ui">-->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<link rel="icon" href="favicon.ico" type="image/vnd.microsoft.icon">
+<link rel="shortcut icon" href="favicon.ico" type="image/vnd.microsoft.icon">
+<link rel="apple-touch-icon" sizes="152x152" href="apple-touch-icon-precomposed.png">
+<title>TaskLine</title>
+<link rel="stylesheet" href="style.css">
+<script src="app.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded',function(){App.init( false );},false);
+</script>
+<style></style>
+</head>
+<body>
+<div id="main" class="hidden">
+	<header>
+		<div class="logo"></div>
+		<a href="auth/logout" style="position:absolute;top:0;right:0;">Logout</a>
+	</header>
+	<article>
+		<div id="date"><ul id="month"></ul><ul id="day"></ul></div>
+		<div id="tasks"></div>
+	</article>
+</div>
+<div id="login">
+	<div>
+		<img src="res/logo.svg">
+		<a href="auth/google" class="google"></a>
+	</div>
+</div>
+<div id="error" class="hidden"><div id="emessage"></div></div>
+<div id="loading"><div></div></div>
+</body>
+</html>
