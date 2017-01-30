@@ -1,3 +1,16 @@
+var __extends = (this && this.__extends) || function (d, b) {
+    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
+    function __() { this.constructor = d; }
+    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+};
+var API = (function () {
+    function API() {
+    }
+    API.userInfo = function (success, failure) {
+        lfetch.get('/api/user', success, failure);
+    };
+    return API;
+}());
 var TWIDTH = 1.5;
 function createElement(data) {
     var e = document.createElement(data.tag);
@@ -50,23 +63,35 @@ var DragElement = (function () {
     };
     return DragElement;
 }());
-var TaskHeader = (function () {
+var TaskElement = (function () {
+    function TaskElement() {
+    }
+    TaskElement.prototype.initElement = function (tag, idbase) {
+        if (idbase === void 0) { idbase = ''; }
+        this.element = createElement({ tag: tag, idbase: idbase });
+    };
+    TaskElement.prototype.getElement = function () { return this.element; };
+    return TaskElement;
+}());
+var TaskHeader = (function (_super) {
+    __extends(TaskHeader, _super);
     function TaskHeader(parent, name) {
-        var _this = this;
-        this.parent = parent;
-        this.header = createElement({ tag: 'h3' });
-        this.h = createElement({ tag: 'input', idbase: 'h', draggable: true });
-        this.h.addEventListener('dblclick', function () { _this.h.readOnly = false; _this.h.draggable = false; }, false);
-        new DragElement(this.h, function (x, y, e, d) { _this.move(x, e, d); }, function (e, d) { _this.setVariation(d); });
-        this.setName(name);
-        this.h.readOnly = true;
+        var _this = _super.call(this) || this;
+        _this.initElement('h3');
+        _this.parent = parent;
+        _this.h = createElement({ tag: 'input', idbase: 'h', draggable: true });
+        _this.h.addEventListener('dblclick', function () { _this.h.readOnly = false; _this.h.draggable = false; }, false);
+        _this.setName(name);
+        _this.h.readOnly = true;
+        new DragElement(_this.h, function (x, y, e, d) { _this.move(x, e, d); }, function (e, d) { _this.setVariation(d); });
         var toggle = createElement({ tag: 'span', class: 'toggleOpen' });
         toggle.addEventListener('click', function () { parent.getElement().classList.toggle('open'); }, false);
         var grip = createElement({ tag: 'span', draggable: true, class: 'grip' });
         new DragElement(grip, function (x, y, e, d) { _this.resize(x, e, d); }, function (e, d) { _this.setVariation(d); });
-        this.header.appendChild(this.h);
-        this.header.appendChild(toggle);
-        this.header.appendChild(grip);
+        _this.element.appendChild(_this.h);
+        _this.element.appendChild(toggle);
+        _this.element.appendChild(grip);
+        return _this;
     }
     TaskHeader.prototype.setName = function (name) {
         if (name !== undefined) {
@@ -94,60 +119,140 @@ var TaskHeader = (function () {
             return;
         }
         var size = d.getVariation();
-        console.log(this.parent.getLength() + Math.abs(x / size), x, size);
         if (e.type === 'dragend') {
-            this.parent.setWidth(this.parent.getLength() + Math.floor(x / size), true);
+            var days = this.parent.getLength() + Math.floor(x / size);
+            this.parent.setWidth(days < 2 ? 2 : days, true);
         }
-        else if (1 < this.parent.getLength() + Math.abs(x / size)) {
+        else if (1 < this.parent.getLength() + Math.floor(x / size)) {
             this.parent.setWidth(this.parent.getLength() + Math.floor(x / size));
         }
     };
-    TaskHeader.prototype.getElement = function () { return this.header; };
     return TaskHeader;
-}());
-var TaskData = (function () {
+}(TaskElement));
+var TaskFooter = (function (_super) {
+    __extends(TaskFooter, _super);
+    function TaskFooter() {
+        var _this = _super.call(this) || this;
+        _this.initElement('div');
+        return _this;
+    }
+    return TaskFooter;
+}(TaskElement));
+var TaskWorker = (function (_super) {
+    __extends(TaskWorker, _super);
+    function TaskWorker(name, cls) {
+        var _this = _super.call(this) || this;
+        _this.cls = cls;
+        _this.initElement('ul');
+        _this.element.appendChild(createElement({ tag: 'li', contents: name }));
+        return _this;
+    }
+    TaskWorker.prototype.setLength = function (days, update) {
+        var _this = this;
+        if (update === void 0) { update = false; }
+        var _loop_1 = function () {
+            var e = createElement({ tag: 'li' });
+            e.addEventListener('click', function () {
+                e.classList.toggle(_this.cls);
+            }, false);
+            this_1.element.appendChild(e);
+        };
+        var this_1 = this;
+        while (this.element.children.length <= days) {
+            _loop_1();
+        }
+    };
+    return TaskWorker;
+}(TaskElement));
+var TaskWorkers = (function (_super) {
+    __extends(TaskWorkers, _super);
+    function TaskWorkers() {
+        var _this = _super.call(this) || this;
+        _this.initElement('div');
+        _this.workers = [];
+        return _this;
+    }
+    TaskWorkers.prototype.add = function (worker) {
+        this.workers.push(worker);
+        this.element.appendChild(worker.getElement());
+    };
+    TaskWorkers.prototype.setLength = function (days, update) {
+        if (update === void 0) { update = false; }
+        this.workers.forEach(function (w) { w.setLength(days, update); });
+    };
+    return TaskWorkers;
+}(TaskElement));
+var TaskData = (function (_super) {
+    __extends(TaskData, _super);
     function TaskData(id, name, days) {
-        this.id = id;
-        this.m = createElement({ tag: 'div', idbase: 't' });
-        this.m.dataset['id'] = this.id;
-        this.move(0, true);
-        this.setWidth(days, true);
-        this.h = new TaskHeader(this, name);
-        this.m.appendChild(this.h.getElement());
+        var _this = _super.call(this) || this;
+        _this.initElement('div', 't');
+        _this.id = id;
+        _this.element.dataset['id'] = _this.id;
+        _this.move(0, true);
+        _this.header = new TaskHeader(_this, name);
+        _this.workers = new TaskWorkers();
+        _this.footer = new TaskFooter();
+        _this.workers.add(new TaskWorker('Plan', 'wc0'));
+        _this.workers.add(new TaskWorker('Design', 'wc1'));
+        _this.workers.add(new TaskWorker('Web', 'wc2'));
+        _this.workers.add(new TaskWorker('Debug', 'wc3'));
+        _this.element.appendChild(_this.header.getElement());
+        _this.element.appendChild(_this.workers.getElement());
+        _this.element.appendChild(_this.footer.getElement());
+        _this.setWidth(days, true);
+        return _this;
     }
     TaskData.prototype.getID = function () { return this.id; };
-    TaskData.prototype.setName = function (name) { this.h.setName(name); };
+    TaskData.prototype.setName = function (name) { this.header.setName(name); };
     TaskData.prototype.setWidth = function (days, update) {
         if (update === void 0) { update = false; }
         if (update) {
             this.days = days;
         }
-        this.m.style.width = (days * TWIDTH) + 'rem';
+        this.element.style.width = (days * TWIDTH) + 'rem';
+        this.workers.setLength(days, update);
     };
     TaskData.prototype.move = function (days, update) {
         if (update === void 0) { update = false; }
         if (update) {
             this.begin = days;
         }
-        this.m.style.marginLeft = (days * TWIDTH) + 'rem';
+        this.element.style.marginLeft = (days * TWIDTH) + 'rem';
     };
     TaskData.prototype.render = function () {
-        return this.m;
+        return this.element;
     };
-    TaskData.prototype.getElement = function () { return this.m; };
     TaskData.prototype.getBegin = function () { return this.begin; };
     TaskData.prototype.getLength = function () { return this.days; };
     return TaskData;
-}());
+}(TaskElement));
 var TaskLine = (function () {
     function TaskLine(begin, end) {
         this.tasks = [];
         this.begin = begin || new Date(new Date().getTime() - 2 * 24 * 60 * 60 * 1000);
         this.end = end || new Date(this.begin.getTime() + 31 * 24 * 60 * 60 * 1000);
+        this.css = new TaskLineStyle();
+        this.css.addColor('wc0', '#b0c4de');
+        this.css.addColor('wc1', '#ffb6c1');
+        this.css.addColor('wc2', '#f0e68c');
+        this.css.addColor('wc3', '#9acd32');
     }
-    TaskLine.prototype._setDate = function (e, value, length) {
+    TaskLine.prototype._setDate = function (e, value, week, length, holiday, today) {
+        if (week === void 0) { week = -1; }
         if (length === void 0) { length = 0; }
+        if (holiday === void 0) { holiday = false; }
+        if (today === void 0) { today = false; }
         e.innerHTML = value;
+        if (0 <= week) {
+            e.classList.add('week' + week);
+        }
+        if (holiday) {
+            e.classList.add('holiday');
+        }
+        if (today) {
+            e.classList.add('today');
+        }
         if (length <= 0) {
             return;
         }
@@ -165,12 +270,7 @@ var TaskLine = (function () {
             e.removeChild(e.children[list.length]);
         }
         for (var i = 0; i < e.children.length; ++i) {
-            if (typeof list[i] === 'string') {
-                this._setDate(e.children[i], list[i]);
-            }
-            else {
-                this._setDate(e.children[i], list[i].label, list[i].length);
-            }
+            this._setDate(e.children[i], list[i].label, list[i].week, list[i].length, list[i].holiday, list[i].today);
         }
     };
     TaskLine.prototype.addTask = function (data) {
@@ -182,11 +282,13 @@ var TaskLine = (function () {
         }
         var _a;
     };
+    TaskLine.prototype.isToday = function (date, now) { return date.getFullYear() === now.getFullYear() && date.getMonth() === now.getMonth() && date.getDate() === now.getDate(); };
     TaskLine.prototype.renderDate = function () {
+        var now = new Date();
         var date = new Date(this.begin.getTime());
         var m = this.begin.getMonth();
         var mlist = [{ label: (m + 1) + '', length: 1 }];
-        var dlist = [this.begin.getDate() + ''];
+        var dlist = [{ label: this.begin.getDate() + '', week: this.begin.getDay(), holiday: false, today: this.isToday(this.begin, now) }];
         while (date.getTime() <= this.end.getTime()) {
             date.setDate(date.getDate() + 1);
             if (m !== date.getMonth()) {
@@ -196,7 +298,7 @@ var TaskLine = (function () {
             else {
                 ++mlist[mlist.length - 1].length;
             }
-            dlist.push(date.getDate() + '');
+            dlist.push({ label: date.getDate() + '', week: date.getDay(), holiday: false, today: this.isToday(date, now) });
         }
         var e = document.getElementById('date');
         if (!e) {
@@ -339,12 +441,27 @@ var App;
         var tl = new TaskLine();
         tl.addTask(new TaskData('1', 'test', 7));
         tl.addTask(new TaskData('1', 'test2', 7));
+        tl.addTask(new TaskData('1', 'test3', 7));
+        tl.addTask(new TaskData('1', 'test4', 7));
         tl.render();
     }
     function init() {
-        lfetch.get('/api/user', afterLogin, function (data) {
+        API.userInfo(afterLogin, function (data) {
             var message = data.message || 'Unknown error.';
         });
     }
     App.init = init;
 })(App || (App = {}));
+var TaskLineStyle = (function () {
+    function TaskLineStyle() {
+        var newStyle = document.createElement('style');
+        newStyle.type = "text/css";
+        document.getElementsByTagName('head').item(0).appendChild(newStyle);
+        this.css = document.styleSheets.item(0);
+    }
+    TaskLineStyle.prototype.addColor = function (name, color) {
+        var idx = document.styleSheets[0].cssRules.length;
+        this.css.insertRule('.' + name + '{background-color:' + color + ';}', idx);
+    };
+    return TaskLineStyle;
+}());

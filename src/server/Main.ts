@@ -1,5 +1,6 @@
 import express = require( 'express' );
 import Auth = require( './Auth' );
+import DB = require( './DB' );
 import API = require( './API' );
 import path = require( 'path' );
 import fs = require( 'fs' );
@@ -37,8 +38,9 @@ function AppInit(): Promise<{ app: express.Express }>
 	const app = express();
 	const router = express.Router();
 	const secret = process.env.SECRET_KEY || 'crocidolite';
-	const auth = new Auth( app, secret );
+	const auth = new Auth.AuthRoute( app, secret );
 	const api = new API();
+	const db = new DB();
 
 	// public
 	app.use( express.static( process.env.PUBLIC_DOCUMENT || './public' ) );
@@ -46,10 +48,10 @@ function AppInit(): Promise<{ app: express.Express }>
 	if ( GOOGLE_SCOPE.indexOf( 'email' ) < 0 ) { GOOGLE_SCOPE.push( 'email' ); }
 
 	// autn
-	auth.setUpAuth( app, {/*data.db*/}, GOOGLE_DATA, GOOGLE_SCOPE );
+	auth.setUpAuth( app, db, GOOGLE_DATA, GOOGLE_SCOPE );
 
 	// api
-	api.init();
+	api.init( db );
 	app.use( '/api', auth.auth( false ), api.getRouter() );
 
 	return Promise.resolve( { app: app } );

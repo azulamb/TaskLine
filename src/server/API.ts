@@ -1,4 +1,5 @@
 import * as express from 'express';
+import DB = require( './DB' );
 
 class API
 {
@@ -41,6 +42,11 @@ class API
 		this.router.get( path, func, this.errorResponce() );
 	}
 
+	private post( path: string, func: ( req: express.Request, res: express.Response, next: express.NextFunction ) => void )
+	{
+		this.router.post( path, func, this.errorResponce() );
+	}
+
 	public getRouter(): express.Router { return this.router; }
 
 	// ======================================== //
@@ -59,9 +65,12 @@ class API
 	// Add API                                  //
 	// ======================================== //
 
-	public init()
+	public init( db: DB )
 	{
 		this.get( '/user', this.userInfo() );
+
+		this.post( '/task/add', this.userInfo() );
+		this.post( '/task/update', this.userInfo() );
 	}
 }
 

@@ -56,17 +56,30 @@ class DragElement
 	}
 }
 
-class TaskHeader
+class TaskElement
+{
+	protected element: HTMLElement;
+
+	public initElement( tag: string, idbase: string = '' )
+	{
+		this.element = createElement( { tag: tag, idbase: idbase } );
+	}
+
+	public getElement() { return this.element; }
+}
+
+class TaskHeader extends TaskElement
 {
 	private parent: TaskData;
 	private name: string;
-	private header: HTMLElement;
 	private h: HTMLInputElement;
+
 	constructor( parent: TaskData, name: string )
 	{
+		super();
+		this.initElement( 'h3' );
 		this.parent = parent;
 
-		this.header = <HTMLHeadingElement>createElement( { tag: 'h3' } );
 		this.h = <HTMLInputElement>createElement( { tag: 'input', idbase: 'h', draggable: true } );
 		this.h.addEventListener( 'dblclick', () => { this.h.readOnly = false; this.h.draggable = false; }, false );
 		this.setName( name );
@@ -79,9 +92,9 @@ class TaskHeader
 		const grip = createElement( { tag: 'span', draggable: true, class: 'grip' } );
 		new DragElement( grip, ( x: number, y: number, e: DragEvent, d: DragElement ) => { this.resize( x, e, d ); }, ( e: DragEvent, d: DragElement ) => { this.setVariation( d ); } );
 
-		this.header.appendChild( this.h );
-		this.header.appendChild( toggle );
-		this.header.appendChild( grip );
+		this.element.appendChild( this.h );
+		this.element.appendChild( toggle );
+		this.element.appendChild( grip );
 	}
 
 	public setName( name?: string )
@@ -114,64 +127,134 @@ class TaskHeader
 		const size = d.getVariation();
 		if ( e.type === 'dragend' )
 		{
-			this.parent.setWidth( this.parent.getLength() + Math.floor( x / size ), true );
-		} else if ( 1 < this.parent.getLength() + Math.abs( x / size ) )
+			const days = this.parent.getLength() + Math.floor( x / size );
+			this.parent.setWidth( days < 2 ? 2 : days, true );
+		} else if ( 1 < this.parent.getLength() + Math.floor( x / size ) )
 		{
 			this.parent.setWidth( this.parent.getLength() + Math.floor( x / size ) );
 		}
 	}
-
-	public getElement() { return this.header; }
 }
 
-class TaskData
+class TaskFooter extends TaskElement
+{
+	constructor()
+	{
+		super();
+		this.initElement( 'div' );
+	}
+}
+
+class TaskWorker extends TaskElement
+{
+	private cls: string;
+	constructor( name: string, cls: string )
+	{
+		super();
+		this.cls = cls;
+		this.initElement( 'ul' );
+		this.element.appendChild( createElement( { tag: 'li', contents: name } ) );
+	}
+
+	public setLength( days: number, update: boolean = false )
+	{
+		while ( this.element.children.length <= days )
+		{
+			const e = createElement( { tag: 'li' } );
+			e.addEventListener( 'click', () =>
+			{
+				e.classList.toggle( this.cls );
+			}, false );
+			this.element.appendChild( e );
+		}
+	}
+}
+
+class TaskWorkers extends TaskElement
+{
+	private workers: TaskWorker[];
+
+	constructor()
+	{
+		super();
+		this.initElement( 'div' );
+		this.workers = [];
+	}
+
+	public add( worker: TaskWorker )
+	{
+		this.workers.push( worker );
+		this.element.appendChild( worker.getElement() );
+	}
+
+	public setLength( days: number, update: boolean = false )
+	{
+		this.workers.forEach( ( w ) => { w.setLength( days, update ); } );
+	}
+}
+
+class TaskData extends TaskElement
 {
 	private id: string;
 	private begin: number;
 	private days: number;
 
-	private m: HTMLDivElement;
-	private h: TaskHeader;
+	private header: TaskHeader;
+	private workers: TaskWorkers;
+	private footer: TaskFooter;
 
 	constructor( id: string, name: string, days: number )
 	{
+		super();
+		this.initElement( 'div', 't' );
 		this.id = id;
 
-		this.m = <HTMLDivElement>createElement( { tag: 'div', idbase: 't' } );
-		this.m.dataset[ 'id' ] = this.id;
+		this.element.dataset[ 'id' ] = this.id;
 		this.move( 0, true );
+
+		this.header = new TaskHeader( this, name );
+
+		this.workers = new TaskWorkers();
+
+		this.footer = new TaskFooter();
+
+		this.workers.add( new TaskWorker( 'Plan', 'wc0' ) );
+		this.workers.add( new TaskWorker( 'Design', 'wc1' ) );
+		this.workers.add( new TaskWorker( 'Web', 'wc2' ) );
+		this.workers.add( new TaskWorker( 'Debug', 'wc3' ) );
+
+		this.element.appendChild( this.header.getElement() );
+		this.element.appendChild( this.workers.getElement() );
+		this.element.appendChild( this.footer.getElement() );
+
 		this.setWidth( days, true );
-
-		this.h = new TaskHeader( this, name );
-
-		this.m.appendChild( this.h.getElement() );
 	}
 
 
 	public getID() { return this.id; }
 
-	public setName( name?: string ) { this.h.setName( name ); }
+	public setName( name?: string ) { this.header.setName( name ); }
 
 	public setWidth( days: number, update: boolean = false )
 	{
 		if ( update ) { this.days = days; }
 
-		this.m.style.width = ( days * TWIDTH ) + 'rem';
+		this.element.style.width = ( days * TWIDTH ) + 'rem';
+
+		this.workers.setLength( days, update );
 	}
 
 	public move( days: number, update: boolean = false )
 	{
 		if ( update ) { this.begin = days; }
 
-		this.m.style.marginLeft = ( days * TWIDTH ) + 'rem';
+		this.element.style.marginLeft = ( days * TWIDTH ) + 'rem';
 	}
 
 	public render(): HTMLElement
 	{
-		return this.m;
+		return this.element;
 	}
-
-	public getElement() { return this.m; }
 
 	public getBegin() { return this.begin; }
 
@@ -184,21 +267,32 @@ class TaskLine
 	private end: Date;
 	private tasks: TaskData[];
 
+	private css: TaskLineStyle;
+
 	constructor( begin?: Date, end?: Date )
 	{
 		this.tasks = [];
 		this.begin = begin || new Date( new Date().getTime() - 2 * 24 * 60 * 60 * 1000 );
 		this.end = end || new Date( this.begin.getTime() + 31 * 24 * 60 * 60 * 1000 );
+
+		this.css = new TaskLineStyle();
+		this.css.addColor( 'wc0', '#b0c4de' );
+		this.css.addColor( 'wc1', '#ffb6c1' );
+		this.css.addColor( 'wc2', '#f0e68c' );
+		this.css.addColor( 'wc3', '#9acd32' );
 	}
 
-	private _setDate( e: HTMLLIElement, value: string, length: number = 0 )
+	private _setDate( e: HTMLLIElement, value: string, week: number = -1, length: number = 0, holiday: boolean = false, today: boolean = false )
 	{
 		e.innerHTML = value;
+		if ( 0 <= week ) { e.classList.add( 'week' + week ); }
+		if ( holiday ){ e.classList.add( 'holiday' ); }
+		if ( today ){ e.classList.add( 'today' ); }
 		if ( length <= 0 ) { return; }
 		e.style.width = ( length * TWIDTH ) + 'rem';
 	}
 
-	private setDate( id: string, list: string[] | { label: string, length: number }[] )
+	private setDate( id: string, list: { label: string, week?: number, length?: number, holiday?: boolean, today?: boolean }[] )
 	{
 		const e = <HTMLUListElement>document.getElementById( id );
 		if ( !e ) { return; }
@@ -206,13 +300,7 @@ class TaskLine
 		while ( list.length < e.children.length ) { e.removeChild( e.children[ list.length ] ); }
 		for ( let i = 0 ; i < e.children.length ; ++i )
 		{
-			if ( typeof list[ i ] === 'string' )
-			{
-				this._setDate( <HTMLLIElement>e.children[ i ], <string>list[ i ] );
-			} else
-			{
-				this._setDate( <HTMLLIElement>e.children[ i ], (<{ label: string }>list[ i ]).label, (<{ length: number }>list[ i ]).length );
-			}
+			this._setDate( <HTMLLIElement>e.children[ i ], list[ i ].label, list[ i ].week, list[ i ].length, list[ i ].holiday, list[ i ].today );
 		}
 	}
 
@@ -227,12 +315,15 @@ class TaskLine
 		}
 	}
 
+	private isToday( date: Date, now: Date ) { return date.getFullYear() === now.getFullYear() && date.getMonth() === now.getMonth() && date.getDate() === now.getDate(); }
+
 	private renderDate()
 	{
+		const now = new Date();
 		const date: Date = new Date( this.begin.getTime() );
 		let m = this.begin.getMonth();
 		const mlist: { label: string, length: number }[] = [ { label: ( m + 1 ) + '', length: 1 } ];
-		const dlist: string[] = [ this.begin.getDate() + '' ];
+		const dlist: { label: string, week: number, holiday: boolean, today: boolean }[] = [ { label: this.begin.getDate() + '', week:this.begin.getDay(), holiday: false, today: this.isToday( this.begin, now ) } ];
 
 		while ( date.getTime() <= this.end.getTime() )
 		{
@@ -245,7 +336,8 @@ class TaskLine
 			{
 				++mlist[ mlist.length - 1 ].length;
 			}
-			dlist.push( date.getDate() + '' );
+
+			dlist.push( { label: date.getDate() + '', week: date.getDay(), holiday: false, today: this.isToday( date, now ) } );
 		}
 
 		const e = document.getElementById( 'date' );
