@@ -1,42 +1,288 @@
-html{min-height:100%;height:100%;}
-body{min-height:100%;height:100%;margin:0;position:relative;font-family:"游ゴシック","Yu Gothic",YuGothic,"Hiragino Kaku Gothic ProN","Hiragino Kaku Gothic Pro","メイリオ",Meiryo,"ＭＳ ゴシック";}
-body > div{position:absolute;top:0;width:100%;height:100%;}
-#login > div{width:12rem;height:20rem;margin:auto;position:absolute;top:0;bottom:0;left:0;right:0;background-image:url(res/icon.svg);background-repeat:no-repeat;background-size:12rem;}
-#login > div > img{display:block;margin:auto;position:absolute;left:0;right:0;bottom:4rem;width:10rem;}
-#login .google{background-color:#4285F4;color:#fff;display:block;width:12rem;height:2rem;border-radius:0.2rem;text-align:center;overflow:hidden;text-decoration:none;position:absolute;bottom:0;}
-.google:before{content:"g";background-color:#385cc1;border-right:1px solid #c1c8fd;width:2rem;height:2rem;display:inline-block;box-sizing:border-box;font-family:"游明朝体","Yu Mincho",YuMincho,sans-serif;}
-.google:after{content:"Login with Google";width:10rem;height:2rem;line-height:2rem;display:inline-block;vertical-align:top;}
-#loading{background-color:rgba(255, 255, 255, 0.5);}
-#loading > div{border:0.5rem solid #4285F4;width:3rem;height:3rem;display:block;position:absolute;margin:auto;top:0;bottom:0;left:0;right:0;box-sizing:border-box;border-radius:50%;}
-#loading > div:before{content:"";background-color:#fff;width:0.5rem;height:0.5rem;display:block;position:absolute;margin:auto;top:0;bottom:0;left:0;right:0;box-sizing:border-box;border-radius:50%;}
-.hidden{display:none;}
-.logo{display:block;background-image:url(res/icon.svg);background-size:100%;}
-#main > *{position:absolute;display:block;width:100%;top:0;box-sizing:border-box;}
-header{height:2rem;}
-header > .logo{width:2rem;height:2rem;}
-article{margin-top:2rem;height:calc(100% - 2rem);overflow:scroll;}
-#date{font-size:0.8rem;position:absolute;top:0;bottom:0;left:0;right:0;}
-#date > ul{height:1rem;margin:0;width:100%;list-style:none;padding:0;display:block;}
-#date > ul#day{height:calc(100% - 1rem);}
-#date > ul > li{height:100%;width:1.5rem;border-right:1px solid black;display:block;float:left;text-align:center;box-sizing:border-box;}
-#tasks{margin-top:2.5rem;}
-#tasks > div{background-color:#eee;height:1.5rem;border-radius:0.5rem;/*overflow:hidden;*/position:relative;margin:0.5rem 0;}
-#tasks > div.open{height:auto;}
-#tasks > div > h3{padding:0;font-size:1rem;margin:0 1.5rem 0 0.5rem;display:block;}
-#tasks > div > h3 > input{width:100%;height:1.5rem;background-color:transparent;margin:0;padding:0;font-size:1rem;display:block;border:0;}
-#tasks > div > h3 > input[readonly]{cursor:inherit;}
-#tasks > div > h3 > input[readonly][draggable]{cursor:move;}
-#tasks > div > h3 > .toggleOpen{border:0.1rem solid gray;font-size:0.5rem;width:1rem;height:1rem;margin:0.25rem 0;top:0;right:0.5rem;border-radius:0.2rem;text-align:center;display:block;position:absolute;box-sizing:border-box;cursor:pointer;}
-#tasks > div > h3 > .toggleOpen:after{content:'▼';}
-#tasks > div.open > h3 > .toggleOpen:after{content:'▲';}
-#tasks > div > h3 > .grip{width:0.5rem;height:100%;top:0;right:0;display:block;position:absolute;box-sizing:border-box;cursor:e-resize;}
-.grip:before,.grip:after{background-color:#bbb;width:0.1rem;height:0.9rem;content:'';display:block;margin:0.3rem 0 0.3rem 0.1rem;float:left;}
-#tasks > div > div{overflow:hidden;height:0;}
-#tasks > div.open > div{height:auto;}
-#tasks > div > div > ul{height:1.5rem;display:block;list-style:none;margin:0;padding:0;overflow:hidden;position:relative;}
-#tasks > div > div > ul > li{width:1.5rem;height:1.5rem;display:block;float:left;margin:0;padding:0;}
-#tasks > div > div > ul > li:first-child{position:absolute;left:0;z-index:1;pointer-events:none;}
-#tasks > div > div:last-child{height:1rem;}
-.week0,.holiday{background-color:#ffe4e1;}
-.week6{background-color:#e0ffff;}
-.today{background-color:#ffffe0;}
+@charset "UTF-8";
+html {
+  min-height: 100%;
+  height: 100%; }
+
+body {
+  font-family: "游ゴシック", "Yu Gothic", YuGothic, "Hiragino Kaku Gothic ProN", "Hiragino Kaku Gothic Pro", "メイリオ", Meiryo, "ＭＳ ゴシック";
+  min-height: 100%;
+  height: 100%;
+  margin: 0;
+  position: relative; }
+  body > div {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    top: 0; }
+
+#login > div {
+  width: 12rem;
+  height: 20rem;
+  margin: auto;
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background-image: url(res/icon.svg);
+  background-repeat: no-repeat;
+  background-size: 12rem; }
+  #login > div > img {
+    display: block;
+    width: 10rem;
+    margin: auto;
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 4rem; }
+
+#login .google {
+  background-color: #4285F4;
+  color: #fff;
+  text-align: center;
+  text-decoration: none;
+  display: block;
+  width: 12rem;
+  height: 2rem;
+  overflow: hidden;
+  border-radius: 0.2rem;
+  position: absolute;
+  bottom: 0; }
+  #login .google:before {
+    content: "g";
+    background-color: #385cc1;
+    border-right: 1px solid #c1c8fd;
+    width: 2rem;
+    height: 2rem;
+    display: inline-block;
+    box-sizing: border-box;
+    line-height: 2rem;
+    font-family: "游明朝体","Yu Mincho",YuMincho,sans-serif; }
+  #login .google:after {
+    content: "Login with Google";
+    width: 10rem;
+    height: 2rem;
+    line-height: 2rem;
+    display: inline-block;
+    vertical-align: top; }
+
+#loading {
+  background-color: rgba(255, 255, 255, 0.5); }
+  #loading > div {
+    display: block;
+    border: 0.5rem solid #4285F4;
+    width: 3rem;
+    height: 3rem;
+    margin: auto;
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    box-sizing: border-box;
+    border-radius: 50%; }
+    #loading > div:before {
+      content: "";
+      background-color: #fff;
+      width: 0.5rem;
+      height: 0.5rem;
+      display: block;
+      position: absolute;
+      margin: auto;
+      top: 0;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      box-sizing: border-box;
+      border-radius: 50%; }
+
+.hidden {
+  display: none; }
+
+.logo {
+  display: block;
+  background-image: url(res/icon.svg);
+  background-size: 100%; }
+
+#main > * {
+  position: absolute;
+  display: block;
+  width: 100%;
+  top: 0;
+  box-sizing: border-box; }
+
+header {
+  position: relative;
+  height: 2rem; }
+  header > .logo {
+    width: 2rem;
+    height: 2rem; }
+  header > .menu {
+    height: 100%;
+    position: absolute;
+    top: 0;
+    right: 0;
+    z-index: 10;
+    overflow: hidden; }
+    header > .menu #togglemenu {
+      cursor: pointer;
+      display: block;
+      width: 2rem;
+      height: 2rem;
+      line-height: 2rem;
+      text-align: center;
+      font-size: 1.5rem;
+      background-color: gray;
+      border-radius: 0.2rem;
+      position: absolute;
+      right: 0; }
+    header > .menu.open {
+      height: auto; }
+    header > .menu ul {
+      list-style: none;
+      margin: 2rem 0 0;
+      padding: 1rem 0;
+      border-radius: 0.2rem;
+      background-color: gray; }
+      header > .menu ul li {
+        margin: 0;
+        padding: 0 1rem;
+        text-align: center;
+        cursor: pointer; }
+        header > .menu ul li a {
+          display: block;
+          text-decoration: none; }
+
+article {
+  margin-top: 2rem;
+  height: calc(100% - 2rem);
+  overflow: scroll; }
+
+#date {
+  font-size: 0.8rem;
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  pointer-events: none; }
+  #date > ul {
+    height: 1rem;
+    margin: 0;
+    width: 100%;
+    list-style: none;
+    padding: 0;
+    display: block; }
+    #date > ul#day {
+      height: calc(100% - 1rem); }
+    #date > ul > li {
+      height: 100%;
+      width: 1.5rem;
+      border-right: 1px solid black;
+      display: block;
+      float: left;
+      text-align: center;
+      box-sizing: border-box; }
+
+#tasks {
+  margin-top: 2.5rem; }
+  #tasks > div {
+    background-color: #eee;
+    height: 1.5rem;
+    border-radius: 0.5rem;
+    position: relative;
+    margin: 0.5rem 0; }
+    #tasks > div > h3 {
+      padding: 0;
+      font-size: 1rem;
+      margin: 0 1.5rem 0 0.5rem;
+      display: block; }
+      #tasks > div > h3 > input {
+        width: 100%;
+        height: 1.5rem;
+        background-color: transparent;
+        margin: 0;
+        padding: 0;
+        font-size: 1rem;
+        display: block;
+        border: 0; }
+        #tasks > div > h3 > input[readonly] {
+          cursor: inherit; }
+          #tasks > div > h3 > input[readonly][draggable] {
+            cursor: move; }
+      #tasks > div > h3 > .toggleOpen {
+        border: 0.1rem solid gray;
+        font-size: 0.5rem;
+        width: 1rem;
+        height: 1rem;
+        margin: 0.25rem 0;
+        top: 0;
+        right: 0.5rem;
+        border-radius: 0.2rem;
+        text-align: center;
+        display: block;
+        position: absolute;
+        box-sizing: border-box;
+        cursor: pointer; }
+        #tasks > div > h3 > .toggleOpen:after {
+          content: '▼'; }
+      #tasks > div > h3 > .grip {
+        width: 0.5rem;
+        height: 100%;
+        top: 0;
+        right: 0;
+        display: block;
+        position: absolute;
+        box-sizing: border-box;
+        cursor: e-resize; }
+    #tasks > div.open {
+      height: auto; }
+      #tasks > div.open > h3 > .toggleOpen:after {
+        content: '▲'; }
+
+.grip:before, .grip:after {
+  background-color: #bbb;
+  width: 0.1rem;
+  height: 0.9rem;
+  content: '';
+  display: block;
+  margin: 0.3rem 0 0.3rem 0.1rem;
+  float: left; }
+
+#tasks > div.open > div {
+  height: auto; }
+
+#tasks > div > div {
+  overflow: hidden;
+  height: 0; }
+  #tasks > div > div > ul {
+    height: 1.5rem;
+    display: block;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    position: relative; }
+    #tasks > div > div > ul > li {
+      width: 1.5rem;
+      height: 1.5rem;
+      display: block;
+      float: left;
+      margin: 0;
+      padding: 0; }
+      #tasks > div > div > ul > li:first-child {
+        position: absolute;
+        left: 0;
+        z-index: 1;
+        pointer-events: none; }
+  #tasks > div > div:last-child {
+    height: 1rem; }
+
+.week0, .holiday {
+  background-color: #ffe4e1; }
+
+.week6 {
+  background-color: #e0ffff; }
+
+.today {
+  background-color: #ffffe0; }

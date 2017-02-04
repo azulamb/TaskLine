@@ -20,7 +20,13 @@ document.addEventListener('DOMContentLoaded',function(){App.init( false );},fals
 <div id="main" class="hidden">
 	<header>
 		<div class="logo"></div>
-		<a href="auth/logout" style="position:absolute;top:0;right:0;">Logout</a>
+		<div class="menu">
+			<div id="togglemenu">⚙</div>
+			<ul>
+				<li>Setting</li>
+				<li><a href="auth/logout">Logout</a></li>
+			</ul>
+		</div>
 	</header>
 	<article>
 		<div id="date"><ul id="month"></ul><ul id="day"></ul></div>

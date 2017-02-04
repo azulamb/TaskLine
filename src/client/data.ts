@@ -87,7 +87,11 @@ class TaskHeader extends TaskElement
 		new DragElement( this.h, ( x: number, y: number, e: DragEvent, d: DragElement ) => { this.move( x, e, d ); }, ( e: DragEvent, d: DragElement ) => { this.setVariation( d ); } );
 
 		const toggle = createElement( { tag: 'span', class: 'toggleOpen' } );
-		toggle.addEventListener( 'click', () => { parent.getElement().classList.toggle( 'open' ); }, false );
+		toggle.addEventListener( 'click', () =>
+		{
+			parent.getElement().classList.toggle( 'open' );
+			parent.updateHeight();
+		}, false );
 
 		const grip = createElement( { tag: 'span', draggable: true, class: 'grip' } );
 		new DragElement( grip, ( x: number, y: number, e: DragEvent, d: DragElement ) => { this.resize( x, e, d ); }, ( e: DragEvent, d: DragElement ) => { this.setVariation( d ); } );
@@ -148,12 +152,12 @@ class TaskFooter extends TaskElement
 class TaskWorker extends TaskElement
 {
 	private cls: string;
-	constructor( name: string, cls: string )
+	constructor( worker: T_Worker )
 	{
 		super();
-		this.cls = cls;
+		this.cls = 'wc' + worker.id;
 		this.initElement( 'ul' );
-		this.element.appendChild( createElement( { tag: 'li', contents: name } ) );
+		this.element.appendChild( createElement( { tag: 'li', contents: worker.name } ) );
 	}
 
 	public setLength( days: number, update: boolean = false )
@@ -195,7 +199,7 @@ class TaskWorkers extends TaskElement
 
 class TaskData extends TaskElement
 {
-	private id: string;
+	private data: T_Task;
 	private begin: number;
 	private days: number;
 
@@ -203,35 +207,43 @@ class TaskData extends TaskElement
 	private workers: TaskWorkers;
 	private footer: TaskFooter;
 
-	constructor( id: string, name: string, days: number )
+	constructor( parent: TaskLine, data: T_Task )
 	{
 		super();
 		this.initElement( 'div', 't' );
-		this.id = id;
+		this.data = data;
 
-		this.element.dataset[ 'id' ] = this.id;
+		this.element.dataset[ 'id' ] = data.id;
 		this.move( 0, true );
 
-		this.header = new TaskHeader( this, name );
+		this.header = new TaskHeader( this, data.name );
 
 		this.workers = new TaskWorkers();
 
 		this.footer = new TaskFooter();
 
-		this.workers.add( new TaskWorker( 'Plan', 'wc0' ) );
-		this.workers.add( new TaskWorker( 'Design', 'wc1' ) );
-		this.workers.add( new TaskWorker( 'Web', 'wc2' ) );
-		this.workers.add( new TaskWorker( 'Debug', 'wc3' ) );
+		parent.getWorker().forEach( ( item ) =>
+		{
+			this.workers.add( new TaskWorker( item ) );
+		} );
 
 		this.element.appendChild( this.header.getElement() );
 		this.element.appendChild( this.workers.getElement() );
 		this.element.appendChild( this.footer.getElement() );
 
-		this.setWidth( days, true );
+		const begin = new Date( data.begin );
+		const end = new Date( data.end );
+
+		this.move( this.calcDays( begin, parent.getBegin() ), true );
+		this.setWidth( this.calcDays( end, begin ), true );
 	}
 
+	private calcDays( date: Date, older: Date ): number
+	{
+		return Math.floor( ( date.getTime() - older.getTime() ) / ( 24 * 60 * 60 * 1000 ) );
+	}
 
-	public getID() { return this.id; }
+	public getID() { return this.data.id; }
 
 	public setName( name?: string ) { this.header.setName( name ); }
 
@@ -259,6 +271,15 @@ class TaskData extends TaskElement
 	public getBegin() { return this.begin; }
 
 	public getLength() { return this.days; }
+
+	public updateHeight()
+	{
+		const t = document.getElementById( 'tasks' );
+		const d = document.getElementById( 'day' );
+		const v = parseInt( document.documentElement.style.fontSize || '10' ) * 2;
+		if ( !( t && d ) || t.clientHeight + v < d.clientHeight ) { return; }
+		d.style.height = ( t.clientHeight + v ) + 'px';
+	}
 }
 
 class TaskLine
@@ -266,6 +287,8 @@ class TaskLine
 	private begin: Date;
 	private end: Date;
 	private tasks: TaskData[];
+
+	private worker: T_Worker[];
 
 	private css: TaskLineStyle;
 
@@ -276,10 +299,6 @@ class TaskLine
 		this.end = end || new Date( this.begin.getTime() + 31 * 24 * 60 * 60 * 1000 );
 
 		this.css = new TaskLineStyle();
-		this.css.addColor( 'wc0', '#b0c4de' );
-		this.css.addColor( 'wc1', '#ffb6c1' );
-		this.css.addColor( 'wc2', '#f0e68c' );
-		this.css.addColor( 'wc3', '#9acd32' );
 	}
 
 	private _setDate( e: HTMLLIElement, value: string, week: number = -1, length: number = 0, holiday: boolean = false, today: boolean = false )
@@ -362,4 +381,22 @@ class TaskLine
 		if ( updateDate ) { this.renderDate(); }
 		this.renderTasks();
 	}
+
+	public setColor( item: T_Worker )
+	{
+		this.css.addColor( 'wc' + item.id, item.color );
+	}
+
+	public parseData( data: T_TaskData )
+	{
+		this.worker = data.worker;
+		data.worker.forEach( ( item ) => { this.setColor( item ); } );
+
+		data.task.forEach( ( item ) => { this.addTask( new TaskData( this, item ) ); } );
+	}
+
+	public getWorker(): T_Worker[] { return this.worker; }
+
+	public getBegin() { return this.begin; }
+	public getEnd() { return this.end; }
 }

@@ -9,6 +9,9 @@ var API = (function () {
     API.userInfo = function (success, failure) {
         lfetch.get('/api/user', success, failure);
     };
+    API.getTask = function (success, failure) {
+        lfetch.get('/api/task/list', success, failure);
+    };
     return API;
 }());
 var TWIDTH = 1.5;
@@ -85,7 +88,10 @@ var TaskHeader = (function (_super) {
         _this.h.readOnly = true;
         new DragElement(_this.h, function (x, y, e, d) { _this.move(x, e, d); }, function (e, d) { _this.setVariation(d); });
         var toggle = createElement({ tag: 'span', class: 'toggleOpen' });
-        toggle.addEventListener('click', function () { parent.getElement().classList.toggle('open'); }, false);
+        toggle.addEventListener('click', function () {
+            parent.getElement().classList.toggle('open');
+            parent.updateHeight();
+        }, false);
         var grip = createElement({ tag: 'span', draggable: true, class: 'grip' });
         new DragElement(grip, function (x, y, e, d) { _this.resize(x, e, d); }, function (e, d) { _this.setVariation(d); });
         _this.element.appendChild(_this.h);
@@ -140,11 +146,11 @@ var TaskFooter = (function (_super) {
 }(TaskElement));
 var TaskWorker = (function (_super) {
     __extends(TaskWorker, _super);
-    function TaskWorker(name, cls) {
+    function TaskWorker(worker) {
         var _this = _super.call(this) || this;
-        _this.cls = cls;
+        _this.cls = 'wc' + worker.id;
         _this.initElement('ul');
-        _this.element.appendChild(createElement({ tag: 'li', contents: name }));
+        _this.element.appendChild(createElement({ tag: 'li', contents: worker.name }));
         return _this;
     }
     TaskWorker.prototype.setLength = function (days, update) {
@@ -184,26 +190,31 @@ var TaskWorkers = (function (_super) {
 }(TaskElement));
 var TaskData = (function (_super) {
     __extends(TaskData, _super);
-    function TaskData(id, name, days) {
+    function TaskData(parent, data) {
         var _this = _super.call(this) || this;
         _this.initElement('div', 't');
-        _this.id = id;
-        _this.element.dataset['id'] = _this.id;
+        _this.data = data;
+        _this.element.dataset['id'] = data.id;
         _this.move(0, true);
-        _this.header = new TaskHeader(_this, name);
+        _this.header = new TaskHeader(_this, data.name);
         _this.workers = new TaskWorkers();
         _this.footer = new TaskFooter();
-        _this.workers.add(new TaskWorker('Plan', 'wc0'));
-        _this.workers.add(new TaskWorker('Design', 'wc1'));
-        _this.workers.add(new TaskWorker('Web', 'wc2'));
-        _this.workers.add(new TaskWorker('Debug', 'wc3'));
+        parent.getWorker().forEach(function (item) {
+            _this.workers.add(new TaskWorker(item));
+        });
         _this.element.appendChild(_this.header.getElement());
         _this.element.appendChild(_this.workers.getElement());
         _this.element.appendChild(_this.footer.getElement());
-        _this.setWidth(days, true);
+        var begin = new Date(data.begin);
+        var end = new Date(data.end);
+        _this.move(_this.calcDays(begin, parent.getBegin()), true);
+        _this.setWidth(_this.calcDays(end, begin), true);
         return _this;
     }
-    TaskData.prototype.getID = function () { return this.id; };
+    TaskData.prototype.calcDays = function (date, older) {
+        return Math.floor((date.getTime() - older.getTime()) / (24 * 60 * 60 * 1000));
+    };
+    TaskData.prototype.getID = function () { return this.data.id; };
     TaskData.prototype.setName = function (name) { this.header.setName(name); };
     TaskData.prototype.setWidth = function (days, update) {
         if (update === void 0) { update = false; }
@@ -225,6 +236,15 @@ var TaskData = (function (_super) {
     };
     TaskData.prototype.getBegin = function () { return this.begin; };
     TaskData.prototype.getLength = function () { return this.days; };
+    TaskData.prototype.updateHeight = function () {
+        var t = document.getElementById('tasks');
+        var d = document.getElementById('day');
+        var v = parseInt(document.documentElement.style.fontSize || '10') * 2;
+        if (!(t && d) || t.clientHeight + v < d.clientHeight) {
+            return;
+        }
+        d.style.height = (t.clientHeight + v) + 'px';
+    };
     return TaskData;
 }(TaskElement));
 var TaskLine = (function () {
@@ -233,10 +253,6 @@ var TaskLine = (function () {
         this.begin = begin || new Date(new Date().getTime() - 2 * 24 * 60 * 60 * 1000);
         this.end = end || new Date(this.begin.getTime() + 31 * 24 * 60 * 60 * 1000);
         this.css = new TaskLineStyle();
-        this.css.addColor('wc0', '#b0c4de');
-        this.css.addColor('wc1', '#ffb6c1');
-        this.css.addColor('wc2', '#f0e68c');
-        this.css.addColor('wc3', '#9acd32');
     }
     TaskLine.prototype._setDate = function (e, value, week, length, holiday, today) {
         if (week === void 0) { week = -1; }
@@ -324,6 +340,18 @@ var TaskLine = (function () {
         }
         this.renderTasks();
     };
+    TaskLine.prototype.setColor = function (item) {
+        this.css.addColor('wc' + item.id, item.color);
+    };
+    TaskLine.prototype.parseData = function (data) {
+        var _this = this;
+        this.worker = data.worker;
+        data.worker.forEach(function (item) { _this.setColor(item); });
+        data.task.forEach(function (item) { _this.addTask(new TaskData(_this, item)); });
+    };
+    TaskLine.prototype.getWorker = function () { return this.worker; };
+    TaskLine.prototype.getBegin = function () { return this.begin; };
+    TaskLine.prototype.getEnd = function () { return this.end; };
     return TaskLine;
 }());
 var lfetch;
@@ -439,16 +467,27 @@ var App;
         hidden('main', false);
         hidden('login', true);
         var tl = new TaskLine();
-        tl.addTask(new TaskData('1', 'test', 7));
-        tl.addTask(new TaskData('1', 'test2', 7));
-        tl.addTask(new TaskData('1', 'test3', 7));
-        tl.addTask(new TaskData('1', 'test4', 7));
-        tl.render();
+        API.getTask(function (data) {
+            console.log(data);
+            tl.parseData(data);
+            tl.render();
+        }, function () { error('Network error', 'Please reload this page.'); });
     }
     function init() {
         API.userInfo(afterLogin, function (data) {
             var message = data.message || 'Unknown error.';
         });
+        var menu = document.getElementById('togglemenu');
+        if (!menu) {
+            return;
+        }
+        menu.addEventListener('click', function () {
+            var e = menu.parentElement;
+            if (!e) {
+                return;
+            }
+            e.classList.toggle('open');
+        }, false);
     }
     App.init = init;
 })(App || (App = {}));
