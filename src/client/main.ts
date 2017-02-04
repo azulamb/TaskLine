@@ -36,20 +36,8 @@ module App
 		{
 console.log(data);
 			tl.parseData( data );
-
-/*tl.addTask( new TaskData( tl, '1', 'test', 7 ) );
-tl.addTask( new TaskData( tl, '2', 'test2', 7 ) );
-tl.addTask( new TaskData( tl, '3', 'test3', 7 ) );
-tl.addTask( new TaskData( tl, '4', 'test4', 7 ) );*/
-
 			tl.render();
 		}, () => { error( 'Network error', 'Please reload this page.' ); } );
-
-		/*setTimeout(()=>{
-			const article = document.getElementsByTagName( 'article' );
-			if ( !article ) { return; }
-			article[ 0 ].scrollTo( 2 * 1.5 * parseInt( document.documentElement.style.fontSize || '10' ), 0 ) ;
-		},1000);*/
 	}
 
 	export function init()
