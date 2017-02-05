@@ -1,6 +1,8 @@
-$sun-color: #ffe4e1;
-$sat-color: #e0ffff;
-$tod-color: #ffffe0;
+$sun-color: #f08080;//#ffe4e1;
+$sat-color: #4169e1;//#e0ffff;
+$tod-color: #e7f300;//#ffffe0;
+
+$task-bcolor: rgba(200,200,200,0.7);
 
 html
 {
@@ -257,7 +259,7 @@ article
 	margin-top: 2.5rem;
 	& > div
 	{
-		background-color: #eee;
+		background-color: $task-bcolor;
 		height: 1.5rem;
 		border-radius: 0.5rem;
 		//overflow:hidden;

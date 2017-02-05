@@ -187,7 +187,7 @@ article {
 #tasks {
   margin-top: 2.5rem; }
   #tasks > div {
-    background-color: #eee;
+    background-color: rgba(200, 200, 200, 0.7);
     height: 1.5rem;
     border-radius: 0.5rem;
     position: relative;
@@ -279,10 +279,10 @@ article {
     height: 1rem; }
 
 .week0, .holiday {
-  background-color: #ffe4e1; }
+  background-color: #f08080; }
 
 .week6 {
-  background-color: #e0ffff; }
+  background-color: #4169e1; }
 
 .today {
-  background-color: #ffffe0; }
+  background-color: #e7f300; }

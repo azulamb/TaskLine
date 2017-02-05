@@ -73,8 +73,9 @@ class API
 
 			data.worker.push( { id: '1', order: 1 , name: 'Plan', color: '#b0c4de'} );
 			data.worker.push( { id: '2', order: 2, name: 'Design', color: '#ffb6c1' } );
-			data.worker.push( { id: '3', order: 3, name: 'Web', color: '#f0e68c' } );
-			data.worker.push( { id: '4', order: 4, name: 'Debug', color: '#9acd32' } );
+			data.worker.push( { id: '3', order: 3, name: 'Server', color: '#f6ae54' } );
+			data.worker.push( { id: '4', order: 4, name: 'Web', color: '#eddc44' } );
+			data.worker.push( { id: '5', order: 5, name: 'Debug', color: '#9acd32' } );
 
 			data.task.push( { id: '1', name: 'test1', begin: new Date().toISOString(), end: new Date(new Date().getTime() + 7 * 24 * 60 * 60 * 1000 ).toISOString(), archive: false, memo: [] } );
 			data.task.push( { id: '2', name: 'test2', begin: new Date().toISOString(), end: new Date(new Date().getTime() + 7 * 24 * 60 * 60 * 1000 ).toISOString(), archive: false, memo: [] } );

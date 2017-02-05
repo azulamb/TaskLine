@@ -1,4 +1,5 @@
 const TWIDTH = 1.5;
+const DFAULT_DAYS = 60;
 
 function createElement( data: { tag: string, idbase?: string, contents?: string, class?: string, draggable?: boolean } ): HTMLElement
 {
@@ -296,7 +297,7 @@ class TaskLine
 	{
 		this.tasks = [];
 		this.begin = begin || new Date( new Date().getTime() - 2 * 24 * 60 * 60 * 1000 );
-		this.end = end || new Date( this.begin.getTime() + 31 * 24 * 60 * 60 * 1000 );
+		this.end = end || new Date( this.begin.getTime() + DFAULT_DAYS * 24 * 60 * 60 * 1000 );
 
 		this.css = new TaskLineStyle();
 	}

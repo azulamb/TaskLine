@@ -15,6 +15,7 @@ var API = (function () {
     return API;
 }());
 var TWIDTH = 1.5;
+var DFAULT_DAYS = 60;
 function createElement(data) {
     var e = document.createElement(data.tag);
     if (data.idbase) {
@@ -251,7 +252,7 @@ var TaskLine = (function () {
     function TaskLine(begin, end) {
         this.tasks = [];
         this.begin = begin || new Date(new Date().getTime() - 2 * 24 * 60 * 60 * 1000);
-        this.end = end || new Date(this.begin.getTime() + 31 * 24 * 60 * 60 * 1000);
+        this.end = end || new Date(this.begin.getTime() + DFAULT_DAYS * 24 * 60 * 60 * 1000);
         this.css = new TaskLineStyle();
     }
     TaskLine.prototype._setDate = function (e, value, week, length, holiday, today) {
